@@ -12,40 +12,156 @@
     <p>Invoice data extracted successfully</p>
   </div>
 
+  <!-- Invoice Header -->
   <section class="fields-section">
     <h2 class="section-label">Invoice Details</h2>
-    <div class="fields-grid">
+    <div class="fields-grid fields-grid--3">
       <div class="field-card field-card--id">
-        <span class="field-label">Invoice ID</span>
-        <span class="field-value">{{ safeVal(data()!.invoice_id) }}</span>
+        <span class="field-label">Invoice Number</span>
+        <span class="field-value">{{ safeVal(data()!.invoice_number) }}</span>
       </div>
       <div class="field-card">
         <span class="field-label">Invoice Date</span>
-        <span class="field-value">{{ safeVal(data()!.invoice_generated_date) }}</span>
+        <span class="field-value">{{ safeVal(data()!.invoice_date) }}</span>
       </div>
       <div class="field-card">
-        <span class="field-label">Name</span>
-        <span class="field-value">{{ safeVal(data()!.name) }}</span>
+        <span class="field-label">Place of Supply</span>
+        <span class="field-value">{{ safeVal(data()!.place_of_supply) }}</span>
       </div>
-      <div class="field-card field-card--amount">
-        <span class="field-label">Total Amount</span>
-        <span class="field-value">{{ safeVal(data()!.amount) }}</span>
+    </div>
+  </section>
+
+  <!-- Seller & Buyer -->
+  <section class="fields-section">
+    <div class="party-grid">
+      <div class="party-card">
+        <h2 class="section-label">Seller Details</h2>
+        <div class="party-fields">
+          <div class="field-row">
+            <span class="field-label">Name</span>
+            <span class="field-value">{{ safeVal(data()!.seller_name) }}</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">GSTIN</span>
+            <span class="field-value field-value--mono">{{ safeVal(data()!.seller_gstin) }}</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">Address</span>
+            <span class="field-value">{{ safeVal(data()!.seller_address) }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="party-card">
+        <h2 class="section-label">Buyer Details</h2>
+        <div class="party-fields">
+          <div class="field-row">
+            <span class="field-label">Name</span>
+            <span class="field-value">{{ safeVal(data()!.buyer_name) }}</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">GSTIN</span>
+            <span class="field-value field-value--mono">{{ safeVal(data()!.buyer_gstin) }}</span>
+          </div>
+          <div class="field-row">
+            <span class="field-label">Address</span>
+            <span class="field-value">{{ safeVal(data()!.buyer_address) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Line Items -->
+  @if (data()!.line_items.length > 0) {
+    <section class="fields-section">
+      <h2 class="section-label">Line Items ({{ data()!.line_items.length }})</h2>
+      <div class="table-wrapper">
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th class="th-num">#</th>
+              <th class="th-desc">Description</th>
+              <th>HSN/SAC</th>
+              <th class="th-right">Qty</th>
+              <th class="th-right">Unit Price</th>
+              <th class="th-right">Taxable Amt</th>
+              <th class="th-right">Tax %</th>
+              <th class="th-right">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of data()!.line_items; track $index) {
+              <tr>
+                <td class="td-num">{{ $index + 1 }}</td>
+                <td class="td-desc">{{ safeVal(item.description) }}</td>
+                <td class="td-mono">{{ safeVal(item.hsn_sac) }}</td>
+                <td class="td-right">{{ safeVal(item.quantity) }}</td>
+                <td class="td-right">{{ safeVal(item.unit_price) }}</td>
+                <td class="td-right">{{ safeVal(item.taxable_amount) }}</td>
+                <td class="td-right">{{ safeVal(item.tax_rate) }}</td>
+                <td class="td-right td-bold">{{ safeVal(item.line_total) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
+
+  <!-- Tax & Totals -->
+  <section class="fields-section">
+    <h2 class="section-label">Tax & Totals</h2>
+    <div class="totals-grid">
+      <div class="totals-rows">
+        <div class="total-row">
+          <span class="total-label">Sub Total (Taxable)</span>
+          <span class="total-value">{{ safeVal(data()!.sub_total) }}</span>
+        </div>
+        @if (data()!.cgst_amount) {
+          <div class="total-row">
+            <span class="total-label">CGST</span>
+            <span class="total-value">{{ safeVal(data()!.cgst_amount) }}</span>
+          </div>
+        }
+        @if (data()!.sgst_amount) {
+          <div class="total-row">
+            <span class="total-label">SGST</span>
+            <span class="total-value">{{ safeVal(data()!.sgst_amount) }}</span>
+          </div>
+        }
+        @if (data()!.igst_amount) {
+          <div class="total-row">
+            <span class="total-label">IGST</span>
+            <span class="total-value">{{ safeVal(data()!.igst_amount) }}</span>
+          </div>
+        }
+        <div class="total-row">
+          <span class="total-label">Total Tax</span>
+          <span class="total-value">{{ safeVal(data()!.total_tax) }}</span>
+        </div>
+        <div class="total-row total-row--final">
+          <span class="total-label">Total Amount</span>
+          <span class="total-value total-value--final">{{ safeVal(data()!.total_amount) }}</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Reference & Payment -->
+  <section class="fields-section">
+    <h2 class="section-label">Reference & Payment</h2>
+    <div class="fields-grid fields-grid--3">
+      <div class="field-card">
+        <span class="field-label">P.O. Number</span>
+        <span class="field-value">{{ safeVal(data()!.po_number) }}</span>
       </div>
       <div class="field-card">
-        <span class="field-label">From</span>
-        <span class="field-value">{{ safeVal(data()!.from_entity) }}</span>
+        <span class="field-label">Due Date</span>
+        <span class="field-value">{{ safeVal(data()!.due_date) }}</span>
       </div>
       <div class="field-card">
-        <span class="field-label">To</span>
-        <span class="field-value">{{ safeVal(data()!.to_entity) }}</span>
-      </div>
-      <div class="field-card">
-        <span class="field-label">CGST</span>
-        <span class="field-value">{{ safeVal(data()!.cgst) }}</span>
-      </div>
-      <div class="field-card">
-        <span class="field-label">SGST</span>
-        <span class="field-value">{{ safeVal(data()!.sgst) }}</span>
+        <span class="field-label">IRN</span>
+        <span class="field-value field-value--mono field-value--small">{{ safeVal(data()!.irn) }}</span>
       </div>
     </div>
   </section>
