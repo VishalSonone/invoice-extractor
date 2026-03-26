@@ -34,12 +34,6 @@ export class Result implements OnInit {
     const d = this.data();
     if (!d) return;
 
-    const headers = ['Invoice ID', 'Name', 'From', 'To', 'Amount', 'CGST', 'SGST', 'Invoice Date'];
-    const values = [
-      d.invoice_id, d.name, d.from_entity, d.to_entity,
-      d.amount, d.cgst, d.sgst, d.invoice_generated_date,
-    ];
-
     const escapeCSV = (val: string | null | undefined): string => {
       if (val === null || val === undefined) return '';
       const str = String(val);
@@ -49,11 +43,52 @@ export class Result implements OnInit {
       return str;
     };
 
-    const csv = headers.map(escapeCSV).join(',') + '\r\n' + values.map(escapeCSV).join(',');
+    let csv = '';
+
+    // Invoice header fields
+    const headerFields = [
+      'Invoice Number', 'Invoice Date', 'Place of Supply',
+      'Seller Name', 'Seller GSTIN', 'Seller Address',
+      'Buyer Name', 'Buyer GSTIN', 'Buyer Address',
+      'Sub Total', 'CGST', 'SGST', 'IGST', 'Total Tax', 'Total Amount',
+      'P.O. Number', 'Due Date', 'IRN',
+    ];
+    const headerValues = [
+      d.invoice_number, d.invoice_date, d.place_of_supply,
+      d.seller_name, d.seller_gstin, d.seller_address,
+      d.buyer_name, d.buyer_gstin, d.buyer_address,
+      d.sub_total, d.cgst_amount, d.sgst_amount, d.igst_amount, d.total_tax, d.total_amount,
+      d.po_number, d.due_date, d.irn,
+    ];
+
+    csv += headerFields.map(escapeCSV).join(',') + '\r\n';
+    csv += headerValues.map(escapeCSV).join(',') + '\r\n';
+
+    // Line items
+    if (d.line_items && d.line_items.length > 0) {
+      csv += '\r\n';
+      const itemHeaders = ['#', 'Description', 'HSN/SAC', 'Quantity', 'Unit Price', 'Taxable Amount', 'Tax Rate', 'Line Total'];
+      csv += itemHeaders.map(escapeCSV).join(',') + '\r\n';
+
+      d.line_items.forEach((item, i) => {
+        const row = [
+          String(i + 1),
+          item.description,
+          item.hsn_sac,
+          item.quantity,
+          item.unit_price,
+          item.taxable_amount,
+          item.tax_rate,
+          item.line_total,
+        ];
+        csv += row.map(escapeCSV).join(',') + '\r\n';
+      });
+    }
+
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    const slug = d.invoice_id ? d.invoice_id.replace(/[^a-z0-9_\-]/gi, '_') : 'invoice';
+    const slug = d.invoice_number ? d.invoice_number.replace(/[^a-z0-9_\-]/gi, '_') : 'invoice';
     a.href = url;
     a.download = `invoice_${slug}.csv`;
     document.body.appendChild(a);
